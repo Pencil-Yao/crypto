@@ -105,7 +105,7 @@ var cipherSuites = []*cipherSuite{
 	{TLS_ECDHE_ECDSA_WITH_RC4_128_SHA, 16, 20, 0, ecdheECDSAKA, suiteECDHE | suiteECSign | suiteDefaultOff, cipherRC4, macSHA1, nil},
 
 	// GMT 0024-2014
-	{TLS_ECDHE_SM4_SM3, 48, 32, 16, ecdheSM2KA, suiteECDHE | suiteECSign, cipherSM4, macSM3, aeadSM4GCM},
+	{TLS_ECDHE_SM4_SM3, 16, 32, 16, ecdheSM2KA, suiteECDHE | suiteECSign, cipherSM4, macSM3, nil},
 
 }
 

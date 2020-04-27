@@ -1109,6 +1109,7 @@ type dsaSignature struct {
 }
 
 type ecdsaSignature dsaSignature
+type sm2Signature dsaSignature
 
 var emptyConfig Config
 
@@ -1220,6 +1221,8 @@ func signatureFromSignatureScheme(signatureAlgorithm SignatureScheme) uint8 {
 		return signatureRSAPSS
 	case ECDSAWithSHA1, ECDSAWithP256AndSHA256, ECDSAWithP384AndSHA384, ECDSAWithP521AndSHA512:
 		return signatureECDSA
+	case SM2SIGWithSM3:
+		return signatureSM2
 	case Ed25519:
 		return signatureEd25519
 	default:

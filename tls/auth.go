@@ -104,6 +104,21 @@ func verifyHandshakeSignature(sigType uint8, pubkey crypto.PublicKey, hashFunc c
 		if !ecdsa.Verify(pubKey, signed, ecdsaSig.R, ecdsaSig.S) {
 			return errors.New("tls: ECDSA verification failure")
 		}
+	case signatureSM2:
+		pubKey, ok := pubkey.(*sm2.PublicKey)
+		if !ok {
+			return errors.New("tls: SM2 signing requires a SM2 public key")
+		}
+		sm2Sig := new(sm2Signature)
+		if _, err := asn1.Unmarshal(sig, sm2Sig); err != nil {
+			return err
+		}
+		if sm2Sig.R.Sign() <= 0 || sm2Sig.S.Sign() <= 0 {
+			return errors.New("tls: SM2 signature contained zero or negative values")
+		}
+		if !sm2.Verify(pubKey, signed, sm2Sig.R, sm2Sig.S) {
+			return errors.New("tls: SM2 verification failure")
+		}
 	case signatureEd25519:
 		pubKey, ok := pubkey.(ed25519.PublicKey)
 		if !ok {

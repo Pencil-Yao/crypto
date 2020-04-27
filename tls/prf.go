@@ -11,6 +11,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/sm/sm3"
 	"errors"
 	"fmt"
 	"hash"
@@ -61,6 +62,17 @@ func prf10(result, secret, label, seed []byte) {
 	for i, b := range result2 {
 		result[i] ^= b
 	}
+}
+
+// del, tbd
+func prfgm10(result, secret, label, seed []byte) {
+	hashSM3 := sm3.New
+
+	labelAndSeed := make([]byte, len(label)+len(seed))
+	copy(labelAndSeed, label)
+	copy(labelAndSeed[len(label):], seed)
+
+	pHash(result, secret, labelAndSeed, hashSM3)
 }
 
 // prf12 implements the TLS 1.2 pseudmo	mo-random function, as defined in RFC 5246, Section 5.
@@ -122,6 +134,9 @@ func prfAndHashForVersion(version uint16, suite *cipherSuite) (func(result, secr
 	case VersionSSL30:
 		return prf30, crypto.Hash(0)
 	case VersionTLS10, VersionTLS11:
+		if suite.id == TLS_ECDHE_SM4_SM3 {
+			return prfgm10, crypto.Hash(0)
+		}
 		return prf10, crypto.Hash(0)
 	case VersionTLS12:
 		if suite.flags&suiteSHA384 != 0 {
@@ -204,6 +219,9 @@ func newFinishedHash(version uint16, cipherSuite *cipherSuite) finishedHash {
 	if hash != 0 {
 		return finishedHash{hash.New(), hash.New(), nil, nil, buffer, version, prf}
 	}
+	if cipherSuite.id == TLS_ECDHE_SM4_SM3 {
+		return finishedHash{sm3.New(), sm3.New(), nil, nil, buffer, version, prf}
+	}
 
 	return finishedHash{sha1.New(), sha1.New(), md5.New(), md5.New(), buffer, version, prf}
 }
@@ -229,7 +247,7 @@ func (h *finishedHash) Write(msg []byte) (n int, err error) {
 	h.client.Write(msg)
 	h.server.Write(msg)
 
-	if h.version < VersionTLS12 {
+	if h.version < VersionTLS12 && h.clientMD5 != nil && h.serverMD5 != nil {
 		h.clientMD5.Write(msg)
 		h.serverMD5.Write(msg)
 	}
@@ -242,7 +260,7 @@ func (h *finishedHash) Write(msg []byte) (n int, err error) {
 }
 
 func (h finishedHash) Sum() []byte {
-	if h.version >= VersionTLS12 {
+	if h.version >= VersionTLS12 || h.clientMD5 == nil || h.serverMD5 == nil {
 		return h.client.Sum(nil)
 	}
 
