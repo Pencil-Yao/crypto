@@ -306,7 +306,14 @@ func (hs *serverHandshakeState) pickCipherSuite() error {
 		supportedList = c.config.cipherSuites()
 	}
 
+	_, gm := hs.cert.PrivateKey.(crypto.Signer).Public().(*sm2.PublicKey)
 	for _, id := range preferenceList {
+		// if the cert is gm cert, the cipher suite must be 0xe011
+		if gm {
+			if id != TLS_ECDHE_SM4_SM3 {
+				continue
+			}
+		}
 		if hs.setCipherSuite(id, supportedList, c.vers) {
 			break
 		}

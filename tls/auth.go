@@ -74,6 +74,10 @@ func pickSignatureAlgorithm(pubkey crypto.PublicKey, peerSigAlgs, ourSigAlgs []S
 			if sigType == signatureECDSA {
 				return sigAlg, sigType, hashAlg, nil
 			}
+		case *sm2.PublicKey:
+			if sigType == signatureSM2 {
+				return sigAlg, sigType, hashAlg, nil
+			}
 		case ed25519.PublicKey:
 			if sigType == signatureEd25519 {
 				return sigAlg, sigType, hashAlg, nil
@@ -217,6 +221,8 @@ func signatureSchemesForCertificate(version uint16, cert *Certificate) []Signatu
 		default:
 			return nil
 		}
+	case *sm2.PublicKey:
+		return []SignatureScheme{SM2SIGWithSM3}
 	case *rsa.PublicKey:
 		if version != VersionTLS13 {
 			return []SignatureScheme{

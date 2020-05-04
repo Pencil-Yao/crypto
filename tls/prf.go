@@ -202,6 +202,8 @@ func hashFromSignatureScheme(signatureAlgorithm SignatureScheme) (crypto.Hash, e
 		return crypto.SHA384, nil
 	case PKCS1WithSHA512, PSSWithSHA512, ECDSAWithP521AndSHA512:
 		return crypto.SHA512, nil
+	case SM2SIGWithSM3:
+		return crypto.SM3, nil
 	case Ed25519:
 		return directSigning, nil
 	default:

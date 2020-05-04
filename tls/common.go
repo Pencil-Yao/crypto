@@ -188,6 +188,7 @@ var supportedSignatureAlgorithms = []SignatureScheme{
 	ECDSAWithP521AndSHA512,
 	PKCS1WithSHA1,
 	ECDSAWithSHA1,
+	SM2SIGWithSM3,
 }
 
 // supportedSignatureAlgorithmsTLS12 contains the signature and hash algorithms
@@ -203,6 +204,7 @@ var supportedSignatureAlgorithmsTLS12 = []SignatureScheme{
 	ECDSAWithP521AndSHA512,
 	PKCS1WithSHA1,
 	ECDSAWithSHA1,
+	SM2SIGWithSM3,
 }
 
 // helloRetryRequestRandom is set as the Random value of a ServerHello
@@ -791,7 +793,7 @@ func (c *Config) cipherSuites() []uint16 {
 // GmTLS based on TLS11
 var supportedVersions = []uint16{
 	//VersionTLS13,
-	//VersionTLS12,
+	VersionTLS12,
 	VersionTLS11,
 	VersionTLS10,
 	VersionSSL30,
