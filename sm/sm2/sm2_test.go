@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sm/sm2"
 	"crypto/sm/sm3"
 	"encoding/hex"
 	"fmt"
@@ -198,14 +199,14 @@ func TestCryptoToolCompare(t *testing.T) {
 	priv.PublicKey.X, priv.PublicKey.Y = priv.PublicKey.ScalarBaseMult(priv.D.Bytes())
 
 	msg, _ := hex.DecodeString("88E0271D16363C00D6456E151C095BAD4B75968E708234A9762146711D327FF3")
-	Encrypt(rand.Reader, msg, &priv.PublicKey)
+	Encrypt(rand.Reader, &priv.PublicKey, msg)
 }
 
 func TestEnc(t *testing.T) {
 	priv, _ := GenerateKey(rand.Reader)
 	var msg = "asdfasdf"
 
-	enc, err := Encrypt(rand.Reader, []byte(msg), &priv.PublicKey)
+	enc, err := Encrypt(rand.Reader, &priv.PublicKey, []byte(msg))
 	if err != nil {
 		t.Fatalf("encrypt failed : %s", err.Error())
 	}
@@ -216,5 +217,22 @@ func TestEnc(t *testing.T) {
 
 	if !bytes.Equal([]byte(msg), dec) {
 		t.Error("enc-dec failed")
+	}
+}
+
+func TestVerifyThird(t *testing.T)  {
+	X, _ := new(big.Int).SetString("5b945fdaf1e6c5d331ea2794f21ec23fc73416d1d5529ed2d48b75137dd23fa4", 16)
+	Y, _ := new(big.Int).SetString("cf0f4af64b56fc399115541d79fa19c1708e3d7e9a9d22a7dfe575339e3218f3", 16)
+	pk := PublicKey{
+		sm2.P256Sm2(),
+		X,
+		Y,
+	}
+	msg_str, _ := hex.DecodeString("3082020ea003020102021100eb32c264d4fd76adae85958e2a06cabd300a06082a811ccf550183753076310b3009060355040613025553311330110603550408130a43616c69666f726e6961311630140603550407130d53616e204672616e636973636f31193017060355040a13106f7267312e6578616d706c652e636f6d311f301d06035504031316746c7363612e6f7267312e6578616d706c652e636f6d301e170d3230303731353039333230305a170d3330303731333039333230305a305b310b3009060355040613025553311330110603550408130a43616c69666f726e6961311630140603550407130d53616e204672616e636973636f311f301d0603550403131670656572302e6f7267312e6578616d706c652e636f6d3059301306072a8648ce3d020106082a811ccf5501822d03420004db169a4dfd46cd5b7670b45cd717af987620c032b0788ccabbb78d500ddee860c51f1b6a5c270b215624904f0cce14890d343446f5ca40040f08077594941668a38197308194300e0603551d0f0101ff0404030205a0301d0603551d250416301406082b0601050507030106082b06010505070302300c0603551d130101ff04023000302b0603551d2304243022802062c312bc5eaf99e23770be51e3be0d834ec7111ff785b05400950bfab7df4e3c30280603551d110421301f821670656572302e6f7267312e6578616d706c652e636f6d82057065657230")
+	sig, _ := hex.DecodeString("3046022100c29c6ac83b3b502e46a7fd82670981e2c31137d2631b35b34484254344379c2a022100cdcec14afe1dfe54fe1a37e2590e25fd39a8c7a0090cfeb43cb815544f17e31c")
+	if pk.Verify([]byte(msg_str), sig) {
+		println("right sig")
+	} else {
+		println("bad sig")
 	}
 }

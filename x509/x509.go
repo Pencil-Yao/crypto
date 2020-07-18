@@ -950,6 +950,8 @@ func checkSignature(algo SignatureAlgorithm, signed, signature []byte, publicKey
 		}
 	case crypto.MD5:
 		return InsecureAlgorithmError(algo)
+	case crypto.SM3:
+		break
 	default:
 		if !hashType.Available() {
 			return ErrUnsupportedAlgorithm
@@ -2287,7 +2289,7 @@ func CreateCertificate(rand io.Reader, template, parent *Certificate, pub, priv 
 	c.Raw = tbsCertContents
 
 	signed := tbsCertContents
-	if hashFunc != 0 {
+	if hashFunc != 0 && hashFunc != crypto.SM3 {
 		h := hashFunc.New()
 		h.Write(signed)
 		signed = h.Sum(nil)
